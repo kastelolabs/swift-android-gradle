@@ -16,9 +16,9 @@ class SwiftAndroidPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        toolchainHandle = new ToolchainHandle(project, extension.toolsVersion)
-
         def extension = project.extensions.create('swift', SwiftAndroidPluginExtension, project)
+
+        toolchainHandle = new ToolchainHandle(project, extension.toolsVersion)
 
         configurePropertiesTask(project)
 
