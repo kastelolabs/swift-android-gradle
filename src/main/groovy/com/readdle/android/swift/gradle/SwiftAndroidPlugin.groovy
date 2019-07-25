@@ -99,7 +99,7 @@ class SwiftAndroidPlugin implements Plugin<Project> {
 
     // Tasks
     private Task createInstallSwiftToolsTask(Project project) {
-        def version = toolchainHandle.TOOLS_VERSION
+        def version = toolchainHandle.toolsVersion
 
         return project.task(type: Exec, "installSwiftTools") {
             executable toolchainHandle.toolsManagerPath
