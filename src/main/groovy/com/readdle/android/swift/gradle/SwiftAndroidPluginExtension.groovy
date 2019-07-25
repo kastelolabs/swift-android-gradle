@@ -87,6 +87,7 @@ class SwiftAndroidPluginExtension {
     boolean cleanEnabled = true
     boolean usePackageClean = true
     boolean useKapt = false
+    String toolsVersion = "1.8.5"
 
     SwiftAndroidPluginExtension(Project project) {
         this.project = project

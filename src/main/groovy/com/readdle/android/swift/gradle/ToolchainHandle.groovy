@@ -7,17 +7,18 @@ import org.gradle.api.Project
 
 class ToolchainHandle {
     public static final String FN_LOCAL_PROPERTIES = "local.properties"
-    public static final String TOOLS_VERSION = "1.8.5"
     public static final String SWIFT_ANDROID_HOME_KEY = "swift-android.dir"
     public static final String ANDROID_NDK_HOME_KEY = "ndk.dir"
 
     final File toolchainFolder
     final File ndkFolder
+    final String toolsVersion
 
-    ToolchainHandle(Project project) {
+    ToolchainHandle(Project project, String toolsVersion) {
         def properties = loadProperties(project)
         toolchainFolder = findToolchain(properties)
         ndkFolder = findNdkLocation(properties)
+        this.toolsVersion = toolsVersion
     }
 
     private String getPathInSwiftHome(String path) {
@@ -26,7 +27,7 @@ class ToolchainHandle {
     }
 
     private String getTool(String name) {
-        return getPathInSwiftHome("build-tools/${TOOLS_VERSION}/${name}")
+        return getPathInSwiftHome("build-tools/${toolsVersion}/${name}")
     }
 
     private String getFolderInToolchain(String path) {
