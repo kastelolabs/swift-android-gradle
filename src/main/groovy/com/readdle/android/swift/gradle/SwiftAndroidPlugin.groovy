@@ -202,7 +202,7 @@ class SwiftAndroidPlugin implements Plugin<Project> {
         def variantName = variant.name.capitalize()
 
         return project.task(type: Copy, "copySwift${variantName}") {
-            from("src/main/swift/.build/jniLibs/armeabi-v7a") {
+            from("src/main/swift/.build/${variantName}") {
                 include "*.so"
             }
             from(toolchainHandle.swiftLibFolder) {
@@ -210,7 +210,7 @@ class SwiftAndroidPlugin implements Plugin<Project> {
             }
             from(swiftBuildTask)
 
-            into "src/main/jniLibs/armeabi-v7a"
+            into "src/main/jniLibs/arm64-v8a"
             
             fileMode 0644
         }
