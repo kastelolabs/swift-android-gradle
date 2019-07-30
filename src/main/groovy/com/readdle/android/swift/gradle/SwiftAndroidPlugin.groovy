@@ -205,7 +205,7 @@ class SwiftAndroidPlugin implements Plugin<Project> {
             from("src/main/swift/.build/${variantName}") {
                 include "*.so"
             }
-            from(toolchainHandle.swiftLibFolder) {
+            from("${toolchainHandle.swiftLibFolder}/aarch64") {
                 include "*.so"
             }
             from(swiftBuildTask)
