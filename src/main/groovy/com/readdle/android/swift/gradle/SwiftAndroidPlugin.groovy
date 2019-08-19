@@ -55,7 +55,7 @@ class SwiftAndroidPlugin implements Plugin<Project> {
         // Swift build chain
         Task swiftLinkGenerated = createLinkGeneratedSourcesTask(project, variant)
         Task[] swiftBuildTasks = createSwiftBuildTasks(project, variant, isDebug)
-        Task[] copySwiftTasks = swiftBuildTasks.map { task ->
+        Task[] copySwiftTasks = swiftBuildTasks.collect { task ->
             return createCopyTask(project, task, variant)
         }
 
@@ -173,8 +173,8 @@ class SwiftAndroidPlugin implements Plugin<Project> {
             include "**/*.cpp"
             include "**/*.swift"
         }
-        
-        return project.android.defaultConfig.ndk.abiFilters.toArray().map { abi ->
+
+        return project.android.defaultConfig.ndk.abiFilters.toArray().collect { abi ->
 
 
 //            String swiftPmBuildPath = debug ?
@@ -218,7 +218,7 @@ class SwiftAndroidPlugin implements Plugin<Project> {
     private Task[] createCopyTasks(Project project, Task swiftBuildTask, def variant) {
         def variantName = variant.name.capitalize()
 
-        return project.android.defaultConfig.ndk.abiFilters.map { abi ->
+        return project.android.defaultConfig.ndk.abiFilters.collect { abi ->
 
             def target = toolchainHandle.swiftAndroidArchTargets[abi] ?: toolchainHandle.defaultArchitectureTarget()
             def swiftPmBuildPath = "src/main/swift/.build/$target"
