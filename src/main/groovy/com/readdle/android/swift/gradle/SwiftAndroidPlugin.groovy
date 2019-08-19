@@ -65,7 +65,7 @@ class SwiftAndroidPlugin implements Plugin<Project> {
             return createCopyTask(project, entry.value, variant, entry.key)
         }
 
-        swiftBuild.dependsOn(swiftLinkGenerated)
+        swiftBuildTasks.each { it.dependsOn(swiftLinkGenerated) }
 
         // Tasks using build tools
         swiftInstall.dependsOn(installTools)
