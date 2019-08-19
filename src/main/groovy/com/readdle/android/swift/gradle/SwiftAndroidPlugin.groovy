@@ -65,11 +65,11 @@ class SwiftAndroidPlugin implements Plugin<Project> {
             return createCopyTask(project, entry.value, variant, entry.key)
         }
 
-        swiftBuildTasks.each { it.dependsOn(swiftLinkGenerated) }
+        swiftBuildTasks.values().each { it.dependsOn(swiftLinkGenerated) }
 
         // Tasks using build tools
         swiftInstall.dependsOn(installTools)
-        swiftBuildTasks.each { it.dependsOn(installTools) }
+        swiftBuildTasks.values().each { it.dependsOn(installTools) }
         copySwiftTasks.each { it.dependsOn(installTools) }
 
         def variantName = variant.name.capitalize()
