@@ -83,7 +83,7 @@ class ToolchainHandle {
     Map<String, String> getFullEnv() {
         return [
                 SWIFT_ANDROID_HOME: toolchainFolder?.absolutePath,
-                ANDROID_NDK_HOME: ndkFolder?.absolutePathv
+                ANDROID_NDK_HOME: ndkFolder?.absolutePath
         ]
     }
 
