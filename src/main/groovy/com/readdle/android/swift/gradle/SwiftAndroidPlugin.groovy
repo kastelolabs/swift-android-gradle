@@ -54,15 +54,17 @@ class SwiftAndroidPlugin implements Plugin<Project> {
 
         // Swift build chain
         Task swiftLinkGenerated = createLinkGeneratedSourcesTask(project, variant)
-        Task swiftBuild = createSwiftBuildTask(project, variant, isDebug)
-        Task copySwift = createCopyTask(project, swiftBuild, variant)
+        Task[] swiftBuildTasks = createSwiftBuildTasks(project, variant, isDebug)
+        Task[] copySwiftTasks = swiftBuildTasks.map { task ->
+            return createCopyTask(project, task, variant)
+        }
 
         swiftBuild.dependsOn(swiftLinkGenerated)
 
         // Tasks using build tools
         swiftInstall.dependsOn(installTools)
-        swiftBuild.dependsOn(installTools)
-        copySwift.dependsOn(installTools)
+        swiftBuildTasks.each { it.dependsOn(installTools) }
+        copySwiftTasks.each { it.dependsOn(installTools) }
 
         def variantName = variant.name.capitalize()
 
@@ -71,11 +73,11 @@ class SwiftAndroidPlugin implements Plugin<Project> {
         Task compileSources = project.tasks.findByName("compile${variantName}Sources")
 
         if (compileNdk != null) {
-            compileNdk.dependsOn(copySwift)
+            compileNdk.dependsOn(*copySwiftTasks)
         } else if (externalNativeBuild != null) {
-            externalNativeBuild.dependsOn(copySwift)
+            externalNativeBuild.dependsOn(*copySwiftTasks)
         } else {
-            compileSources.dependsOn(copySwift)
+            compileSources.dependsOn(*copySwiftTasks)
         }
     }
 
@@ -156,7 +158,7 @@ class SwiftAndroidPlugin implements Plugin<Project> {
         }
     }
 
-    private Task createSwiftBuildTask(Project project, def variant, boolean debug) {
+    private Task[] createSwiftBuildTasks(Project project, def variant, boolean debug) {
         def variantName = variant.name.capitalize()
 
         def extension = project.extensions.getByType(SwiftAndroidPluginExtension)
@@ -172,47 +174,71 @@ class SwiftAndroidPlugin implements Plugin<Project> {
             include "**/*.swift"
         }
 
-        String swiftPmBuildPath = debug ?
-                "src/main/swift/.build/debug" : "src/main/swift/.build/release"
+        return project.android.defaultConfig.ndk.abiFilters.map { abi ->
 
-        def outputLibraries = project.fileTree(swiftPmBuildPath) {
-            include "*.so"
-        }
 
-        return project.task(type: Exec, "swiftBuild${variantName}") {
-            workingDir "src/main/swift"
-            executable toolchainHandle.swiftBuildPath
-            args arguments
-            environment toolchainHandle.fullEnv
+//            String swiftPmBuildPath = debug ?
+//                    "src/main/swift/.build/debug" : "src/main/swift/.build/release"
 
-            inputs.property("args", arguments)
-            inputs.files(sources).skipWhenEmpty()
-            outputs.files(outputLibraries)
 
-            doFirst {
-                checkNdk()
+            def target = toolchainHandle.swiftAndroidArchTargets[abi] ?: toolchainHandle.defaultArchitectureTarget()
+            def swiftPmBuildPath = "src/main/swift/.build/$target"
 
-                def args = arguments.join(" ")
-                println("Swift PM flags: ${args}")
+            def outputLibraries = project.fileTree(swiftPmBuildPath) {
+                include "*.so"
+            }
+
+
+            def buildEnv = toolchainHandle.fullEnv
+            def swiftAndroidArch = toolchainHandle.swiftAndroidAbis[abi] ?: toolchainHandle.defaultSwiftAndroidAbi()
+            buildEnv.put('SWIFT_ANDROID_ARCH', swiftAndroidArch)
+
+
+            return project.task(type: Exec, "swiftBuild${variantName}_$abi") {
+                workingDir "src/main/swift"
+                executable toolchainHandle.swiftBuildPath
+                args arguments
+                environment buildEnv
+
+                inputs.property("args", arguments)
+                inputs.files(sources).skipWhenEmpty()
+                outputs.files(outputLibraries)
+
+                doFirst {
+                    checkNdk()
+
+                    def args = arguments.join(" ")
+                    println("Building for NDK ABI $abi (Swift Android equiv $swiftAndroidArch")
+                    println("Swift PM flags: ${args}")
+                }
             }
         }
     }
 
-    private Task createCopyTask(Project project, Task swiftBuildTask, def variant) {
+    private Task[] createCopyTasks(Project project, Task swiftBuildTask, def variant) {
         def variantName = variant.name.capitalize()
 
-        return project.task(type: Copy, "copySwift${variantName}") {
-            from("src/main/swift/.build/${variantName}") {
-                include "*.so"
-            }
-            from("${toolchainHandle.swiftLibFolder}/aarch64") {
-                include "*.so"
-            }
-            from(swiftBuildTask)
+        return project.android.defaultConfig.ndk.abiFilters.map { abi ->
 
-            into "src/main/jniLibs/arm64-v8a"
-            
-            fileMode 0644
+            def target = toolchainHandle.swiftAndroidArchTargets[abi] ?: toolchainHandle.defaultArchitectureTarget()
+            def swiftPmBuildPath = "src/main/swift/.build/$target"
+
+            def swiftAndroidArch = toolchainHandle.swiftAndroidAbis[abi] ?: toolchainHandle.defaultSwiftAndroidAbi()
+
+            return project.task(type: Copy, "copySwift${variantName}_$abi") {
+                from(swiftPmBuildPath) {
+                    include "*.so"
+                }
+
+                from("${toolchainHandle.swiftLibFolder}/$swiftAndroidArch") {
+                    include "*.so"
+                }
+                from(swiftBuildTask)
+
+                into "src/main/jniLibs/$abi"
+
+                fileMode 0644
+            }
         }
     }
 

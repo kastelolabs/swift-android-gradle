@@ -88,6 +88,7 @@ class SwiftAndroidPluginExtension {
     boolean usePackageClean = true
     boolean useKapt = false
     String toolsVersion = "master"
+    String[] supportedAbis = ['arm64-v8a']
 
     SwiftAndroidPluginExtension(Project project) {
         this.project = project

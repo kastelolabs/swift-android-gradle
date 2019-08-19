@@ -10,9 +10,25 @@ class ToolchainHandle {
     public static final String SWIFT_ANDROID_HOME_KEY = "swift-android.dir"
     public static final String ANDROID_NDK_HOME_KEY = "ndk.dir"
 
+    public static final String DEFAULT_NDK_ABI = "arm64-v8a"
+
     final File toolchainFolder
     final File ndkFolder
     final String toolsVersion
+
+    final Map<String, String> swiftAndroidAbis = [
+            "x86": "x86",
+            "x86_64": "x86_64",
+            "armeabi-v7a": "armv7",
+            "arm64-v8a": "aarch64"
+    ]
+
+    final Map<String, String> swiftAndroidArchTargets = [
+            "x86": "i686-none-linux-android",
+            "x86_64": "x86_64-none-linux-android",
+            "armeabi-v7a": "armv7-unknown-linux-androideabi",
+            "arm64-v8a": "aarch64-none-linux-android"
+    ]
 
     ToolchainHandle(Project project, String toolsVersion) {
         def properties = loadProperties(project)
@@ -67,8 +83,16 @@ class ToolchainHandle {
     Map<String, String> getFullEnv() {
         return [
                 SWIFT_ANDROID_HOME: toolchainFolder?.absolutePath,
-                ANDROID_NDK_HOME: ndkFolder?.absolutePath
+                ANDROID_NDK_HOME: ndkFolder?.absolutePathv
         ]
+    }
+
+    String defaultSwiftAndroidAbi() {
+        return swiftAndroidAbis[DEFAULT_NDK_ABI]
+    }
+
+    String defaultArchitectureTarget() {
+        return swiftAndroidArchTargets[DEFAULT_NDK_ABI]
     }
 
     private static Properties loadProperties(Project project) {
