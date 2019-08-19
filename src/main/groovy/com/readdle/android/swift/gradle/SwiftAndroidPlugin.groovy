@@ -173,8 +173,8 @@ class SwiftAndroidPlugin implements Plugin<Project> {
             include "**/*.cpp"
             include "**/*.swift"
         }
-
-        return project.android.defaultConfig.ndk.abiFilters.map { abi ->
+        
+        return project.android.defaultConfig.ndk.abiFilters.toArray().map { abi ->
 
 
 //            String swiftPmBuildPath = debug ?
