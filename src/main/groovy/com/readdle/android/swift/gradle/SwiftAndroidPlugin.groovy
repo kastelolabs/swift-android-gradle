@@ -186,7 +186,8 @@ class SwiftAndroidPlugin implements Plugin<Project> {
 
 
         def target = toolchainHandle.swiftAndroidArchTargets[abi] ?: toolchainHandle.defaultArchitectureTarget()
-        def swiftPmBuildPath = "src/main/swift/.build/$target"
+        def swiftPmBuildPath = debug ?
+                "src/main/swift/.build/$target/debug" : "src/main/swift/.build/$target/release"
 
         def outputLibraries = project.fileTree(swiftPmBuildPath) {
             include "*.so"
@@ -212,7 +213,7 @@ class SwiftAndroidPlugin implements Plugin<Project> {
                 checkNdk()
 
                 def args = arguments.join(" ")
-                println("Building for NDK ABI $abi (Swift Android equiv $swiftAndroidArch")
+                println("Building for NDK ABI $abi (Swift Android equiv $swiftAndroidArch)")
                 println("Swift PM flags: ${args}")
             }
         }
@@ -222,8 +223,7 @@ class SwiftAndroidPlugin implements Plugin<Project> {
         def variantName = variant.name.capitalize()
 
         def target = toolchainHandle.swiftAndroidArchTargets[abi] ?: toolchainHandle.defaultArchitectureTarget()
-        def swiftPmBuildPath = "src/main/swift/.build/$target"
-
+        def swiftPmBuildPath = "src/main/swift/.build/$target/$variant"
         def swiftAndroidArch = toolchainHandle.swiftAndroidAbis[abi] ?: toolchainHandle.defaultSwiftAndroidAbi()
 
         return project.task(type: Copy, "copySwift${variantName}_$abi") {

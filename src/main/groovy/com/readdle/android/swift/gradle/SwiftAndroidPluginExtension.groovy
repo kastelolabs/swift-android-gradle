@@ -105,4 +105,6 @@ class SwiftAndroidPluginExtension {
         project.configure(release, closure)
         return release
     }
+
+
 }
